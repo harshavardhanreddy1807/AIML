@@ -2,101 +2,87 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>About | AI & ML Department</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
   <style>
     body {
       background-color: #f4f4f4;
     }
-    .overlay {
-      background-color: #555;
-    }
-    .about-card {
-      background-color: #6c757d;
-      color: pink;
-      border-radius: 15px;
+    .chatbox {
+      background-color: #ffffff;
       padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: 20px auto;
     }
-    .about-img {
-      width: 100%;
-      max-width: 300px;
+    #chatlog {
+      background-color: #f8f9fa;
+      padding: 15px;
       border-radius: 10px;
-      margin-right: 20px;
+      height: 300px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      font-family: Arial, sans-serif;
     }
-    .flex-wrap {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
+    .user {
+      color: #333;
+      margin-bottom: 8px;
     }
-    @media (max-width: 768px) {
-      .flex-wrap {
-        flex-direction: column;
-      }
-      .about-img {
-        margin-bottom: 15px;
-        margin-right: 0;
-      }
+    .bot {
+      color: #0077cc;
+      margin-bottom: 8px;
     }
   </style>
 </head>
 <body>
 
-  <header class="text-white text-center p-5 overlay animate__animated animate__fadeInDown">
-    <h1>About Us</h1>
-  </header>
+  <div class="chatbox">
+    <h4>Ask Our AI Chatbot</h4>
+    <div id="chatlog"></div>
+    <textarea id="userInput" class="form-control mb-2" placeholder="Ask something about the department..."></textarea>
+    <button onclick="sendMessage()" class="btn btn-primary">Send</button>
+  </div>
 
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="index.html">AI&ML Dept</a>
-    </div>
-  </nav>
+  <script>
+    async function sendMessage() {
+      const userInput = document.getElementById("userInput").value.trim();
+      const chatlog = document.getElementById("chatlog");
+      if (!userInput) return;
 
-  <section class="container py-5">
-    
-    <div class="about-card animate__animated animate__fadeInUp">
-      <div class="flex-wrap">
-        <img src="AI.jpg" alt="Students learning AI" class="about-img">
-        <div>
-          <h4>Mission</h4>
-          <p>To empower students with advanced knowledge in AI, machine learning, and data science to solve complex, real-world problems.</p>
-        </div>
-      </div>
-    </div>
+      chatlog.innerHTML += `<div class="user"><strong>You:</strong> ${userInput}</div>`;
+      document.getElementById("userInput").value = '';
+      chatlog.scrollTop = chatlog.scrollHeight;
 
-    <div class="about-card animate__animated animate__fadeInUp animate__delay-1s">
-      <div class="flex-wrap">
-        <img src="Curriculum.jpg" alt="Classroom tech" class="about-img">
-        <div>
-          <h4>Curriculum</h4>
-          <ul>
-            <li>Foundations in Python, Data Structures & Algorithms</li>
-            <li>Hands-on courses in AI, ML, Deep Learning, NLP</li>
-            <li>Real-time projects and capstone internships</li>
-          </ul>
-        </div>
-      </div>
-    </div>
+      try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_OPENAI_API_KEY" // ⚠️ Replace with your actual key
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [
+              { role: "system", content: "You are an AI & ML department assistant answering department-related questions." },
+              { role: "user", content: userInput }
+            ]
+          })
+        });
 
-    <div class="about-card animate__animated animate__fadeInUp animate__delay-2s">
-      <div class="flex-wrap">
-        <img src="image.png" alt="Innovation lab" class="about-img">
-        <div>
-          <h4>Highlights</h4>
-          <ul>
-            <li>State-of-the-art AI Labs and Research Centers</li>
-            <li>Collaboration with industries for projects</li>
-            <li>Active student clubs and hackathons</li>
-          </ul>
-        </div>
-      </div>
-    </div>
+        const data = await response.json();
+        if (data.choices && data.choices.length > 0) {
+          chatlog.innerHTML += `<div class="bot"><strong>Bot:</strong> ${data.choices[0].message.content}</div>`;
+        } else {
+          chatlog.innerHTML += `<div class="bot text-danger"><strong>Bot:</strong> No response received.</div>`;
+        }
+        chatlog.scrollTop = chatlog.scrollHeight;
 
-  </section>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+      } catch (error) {
+        chatlog.innerHTML += `<div class="bot text-danger"><strong>Bot:</strong> Error fetching response.</div>`;
+      }
+    }
+  </script>
 </body>
 </html>

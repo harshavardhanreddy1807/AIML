@@ -34,6 +34,9 @@
       color: #0077cc;
       margin-bottom: 8px;
     }
+    .bot.error {
+      color: red;
+    }
   </style>
 </head>
 <body>
@@ -46,27 +49,44 @@
   </div>
 
   <script>
-    async function sendMessage() {
-      const userInput = document.getElementById("userInput").value.trim();
-      const chatlog = document.getElementById("chatlog");
-      if (!userInput) return;
+    // Your own predefined Q&A about AI & ML Department
+    const faq = {
+      "what courses are offered?": "We offer courses in AI, Machine Learning, Deep Learning, NLP,computer networks and many more.",
+      "what is the mission of the department?": "Our mission is to empower students with advanced AI knowledge to solve real-world problems.",
+      "how to contact the department?": "You can email us at ai-ml@university.edu or call +123-456-7890.",
+      "who is the head of department?": "Dr.JJ.Lohith is the head of the AI & ML Department.",
+      "what are the research areas?": "Our main research areas include computer vision, natural language processing, robotics, and data analytics.",
+      "does the department offer internships?": "Yes, we offer internship opportunities with industry partners and research projects."
+    };
 
-      chatlog.innerHTML += `<div class="user"><strong>You:</strong> ${userInput}</div>`;
+    async function sendMessage() {
+      const userInputRaw = document.getElementById("userInput").value.trim();
+      const userInput = userInputRaw.toLowerCase();
+      const chatlog = document.getElementById("chatlog");
+      if (!userInputRaw) return;
+
+      chatlog.innerHTML += `<div class="user"><strong>You:</strong> ${userInputRaw}</div>`;
       document.getElementById("userInput").value = '';
       chatlog.scrollTop = chatlog.scrollHeight;
+
+      if (faq[userInput]) {
+        chatlog.innerHTML += `<div class="bot"><strong>Bot:</strong> ${faq[userInput]}</div>`;
+        chatlog.scrollTop = chatlog.scrollHeight;
+        return;
+      }
 
       try {
         const response = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer sk-proj-t8EG3-" 
+            "Authorization": "Bearer sk-proj-t8EG3" 
           },
           body: JSON.stringify({
             model: "gpt-3.5-turbo",
             messages: [
               { role: "system", content: "You are an AI & ML department assistant answering department-related questions." },
-              { role: "user", content: userInput }
+              { role: "user", content: userInputRaw }
             ]
           })
         });
@@ -75,14 +95,15 @@
         if (data.choices && data.choices.length > 0) {
           chatlog.innerHTML += `<div class="bot"><strong>Bot:</strong> ${data.choices[0].message.content}</div>`;
         } else {
-          chatlog.innerHTML += `<div class="bot text-danger"><strong>Bot:</strong> No response received.</div>`;
+          chatlog.innerHTML += `<div class="bot error"><strong>Bot:</strong> No response received.</div>`;
         }
         chatlog.scrollTop = chatlog.scrollHeight;
 
       } catch (error) {
-        chatlog.innerHTML += `<div class="bot text-danger"><strong>Bot:</strong> Error fetching response.</div>`;
+        chatlog.innerHTML += `<div class="bot error"><strong>Bot:</strong> Error fetching response.</div>`;
       }
     }
   </script>
+
 </body>
 </html>
